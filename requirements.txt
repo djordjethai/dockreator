@@ -3,3 +3,4 @@ PyMuPDF
 openai
 pandas
 python-docx
+pytesseract

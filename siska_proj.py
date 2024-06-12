@@ -8,6 +8,9 @@ from openai import OpenAI
 import streamlit as st
 import zipfile
 import datetime
+import os
+from PIL import Image
+import pytesseract
 
 client = OpenAI()
 
@@ -44,13 +47,34 @@ def read_docx_file(filepath):
                 text.append(cell.text)
     return '\n'.join(text)
 
+def convert_page_to_image(page):
+    print("Konvertujem stranu u sliku")
+    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    return img
+
+def ocr_image(image):
+    print("Izvrsavam OCR na slici")
+    return pytesseract.image_to_string(image)
+
 def read_pdf_file(filepath):
-    doc = fitz.open(filepath)
-    text = ""
-    for page_num in range(len(doc)):
-        page = doc.load_page(page_num)
-        text += page.get_text()
-    return text
+    try:
+        doc = fitz.open(filepath)
+        text = ""
+        for page_num in range(len(doc)):
+            page = doc.load_page(page_num)
+            page_text = page.get_text()
+            if not page_text.strip():
+                # Perform OCR if no readable text is found
+                image = convert_page_to_image(page)
+                page_text = ocr_image(image)
+            text += page_text
+        if not text:
+            raise ValueError(f"The file {filepath} contains no readable text.")
+        return text
+    except Exception as e:
+        st.error(f"Error reading PDF file {filepath}: {e}")
+        return ""
 
 def read_documents_from_folders(folders):
     documents = {}

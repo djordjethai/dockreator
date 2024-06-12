@@ -2,6 +2,8 @@
 import streamlit as st
 import string
 import subprocess
+import pytessarect
+
 
 def set_env_variable(name, value):
     # Set environment variable for current session
