@@ -7,7 +7,8 @@ from docx import Document
 from openai import OpenAI
 import streamlit as st
 import zipfile
-import datetime
+import setup_proj as setup
+
 
 client = OpenAI()
 
@@ -113,9 +114,9 @@ def zip_specific_files(files_to_zip, zip_name):
         for file_path in files_to_zip:
             if os.path.exists(file_path):
                 zipf.write(file_path, os.path.basename(file_path))
-       
 
 def main(template_path, folders, base_folder, fixed_folder, members, opcija, podela):
+    
     keys = extract_keys_from_template(template_path)
     files_to_zip = []
     for member in members:
@@ -135,16 +136,19 @@ def main(template_path, folders, base_folder, fixed_folder, members, opcija, pod
     st.success("Kreirani su svi zahtevani dokumenti")
 
 if __name__ == "__main__":
-    template_path = './zasisku/mustre/tpl.docx'  # Ensure your template uses delimiters [key]
-    base_folders = ['./zasisku/zaposleni']
-    base_folder = './zasisku/zaposleni'
-    fixed_folder = './zasisku/dokumenti'
+    with st.sidebar:
+        setup.main()
+    template_path = os.getenv("DOCK_TEMPLATE")  
+    base_folder = os.getenv("DOCK_ZAPOSLENI")
+    fixed_folder = os.getenv("DOCK_FIXED")
+    podela = os.getenv("DOCK_PODELA")
+   
+    base_folders = [base_folder]
     available_members = [name for name in os.listdir(base_folder) if os.path.isdir(os.path.join(base_folder, name))]
-    folder_path = './zasisku' 
-    podela = './zasisku/podela/podela.csv'
-    st.title("Siska - Kreiranje dokumenata za zaposlene")    
-    st.subheader("Kreiranje dokumenata za zaposlene")
-    st.caption("Ver 11.06.2024.")
+    
+    st.subheader("Kreiranje dokumenata")
+    st.caption("Doc Koder Ver 12.06.2024.")
+
     if "gotovo" not in st.session_state:
         st.session_state.gotovo = False
         
