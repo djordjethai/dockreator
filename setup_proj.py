@@ -2,7 +2,7 @@
 import streamlit as st
 import string
 import subprocess
-import pytessarect
+import pytesseract
 
 
 def set_env_variable(name, value):
