@@ -1,5 +1,5 @@
-﻿import os
-import re
+﻿import re
+import os
 import json
 import fitz
 import pandas as pd
@@ -7,8 +7,6 @@ from docx import Document
 from openai import OpenAI
 import streamlit as st
 import zipfile
-import datetime
-import os
 from PIL import Image
 import pytesseract
 
