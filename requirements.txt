@@ -4,3 +4,5 @@ openai
 pandas
 python-docx
 pytesseract
+langchain_text_splitters
+pypandoc

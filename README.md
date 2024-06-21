@@ -1,8 +1,8 @@
-## Document Generation Tool
+# Document Generation Tool
 
 This repository contains a Python-based tool for generating personalized documents for employees using predefined templates and data from multiple file types. The tool leverages OpenAI's GPT-4 model for extracting values from documents and supports .txt, .docx, and .pdf files. The final documents are zipped and made available for download via a Streamlit web interface.
 
-### Features
+## Features
 
 - **Template Parsing:** Extracts keys from a DOCX template.
 - **Document Reading:** Reads text from .txt, .docx, and .pdf files.
@@ -14,13 +14,14 @@ This repository contains a Python-based tool for generating personalized documen
 
 ### Requirements
 
-- Python 3.11
+- Python 3.12
 - Required Python libraries: `os`, `re`, `json`, `fitz`, `pandas`, `docx`, `openai`, `streamlit`, `zipfile`, `datetime`
 
 ### Installation
 
 1. Clone the repository.
 2. Install the required Python libraries using pip:
+
     ```bash
     pip install -r requirements.txt
     ```
@@ -36,9 +37,11 @@ This repository contains a Python-based tool for generating personalized documen
 
 3. **Run the application:**
     - Use the Streamlit command to run the application:
+  
       ```bash
       streamlit run app.py
       ```
+
     - Navigate to the Streamlit interface in your browser.
     - Select the document type, employees, and initiate document creation.
     - Download the resulting ZIP file containing the generated documents.
@@ -46,9 +49,10 @@ This repository contains a Python-based tool for generating personalized documen
 ### Code Description
 
 #### Import Libraries
+
 ```python
-import os
 import re
+import os
 import json
 import fitz
 import pandas as pd
@@ -56,10 +60,12 @@ from docx import Document
 from openai import OpenAI
 import streamlit as st
 import zipfile
-import datetime
+from PIL import Image
+import pytesseract
 ```
 
 #### Initialize OpenAI Client
+
 ```python
 client = OpenAI()
 ```
@@ -93,14 +99,16 @@ client = OpenAI()
 - **zip_specific_files(files_to_zip, zip_name)**
   - Zips specified files into a ZIP archive.
 
-#### Main Function
+#### Main Function  
+
 ```python
 def main(template_path, folders, base_folder, fixed_folder, members, opcija, podela):
     # Main logic for extracting keys, reading documents, extracting values, and creating filled templates.
     # Zips the final documents and provides a download link via Streamlit.
 ```
 
-#### Streamlit Interface
+#### Streamlit Interface  
+
 ```python
 if __name__ == "__main__":
     # Streamlit UI for document selection and generation.

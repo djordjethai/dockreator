@@ -97,6 +97,7 @@ def extract_values_from_csv(csv_path, member, opcija):
 def extract_values_from_docs(keys, documents, csv_values):
     response_text = client.chat.completions.create(
         model="gpt-4o",
+        temperature=0,
         messages=[
             {
                 "role": "user",
