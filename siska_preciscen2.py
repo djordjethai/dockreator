@@ -65,6 +65,7 @@ def refine_with_llm(contract_text, annex_text, finish_reason):
                     2. Maintain the structure and coherence of the contract.
                     3. Do not give the title for the document.
                     4. Use appropriate formatting such as H2 for articles, and so on to organize the text.
+                    5. Leave out sentence like 'menja se i glasi' and the quotation marks associated with it.
 
                     Output the updated contract below:
                     """})
