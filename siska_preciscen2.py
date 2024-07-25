@@ -4,9 +4,6 @@ import os
 
 # Initialize OpenAI client
 client = OpenAI()
-conversation_history = []
-finish_reason = ""
-
 
 # X:\05 OPŠTI\LJUDSKI RESURSI\RADNICI\Bojan Gavrilović\UGOVOR O RADU\KONACNO
 # "C:\\Users\\djordje\\Desktop\\RADNICI\\Bojan Gavrilović\\UGOVOR O RADU\\KONACNO"
@@ -52,9 +49,14 @@ def save_to_docx(template_file, save_path, final_text):
             add_markdown_paragraph(doc, line)
     doc.save(save_path)
 
-def refine_with_llm(contract_text, annex_text, finish_reason):
+def refine_with_llm(contract_text, annex_text):
     # Using OpenAI's GPT to ensure coherence and integration
+    finish_reason = None 
+    conversation_history = []
     story = ""
+    print(" pocetak ", conversation_history)
+    print("ugovor", len(contract_text))
+    print("anex", len(annex_text))
     while True:
         if finish_reason == "" or finish_reason == None:
             conversation_history.append({"role": "user", "content": f"""Please update the following contract by replacing the existing sentences with the corresponding new sentences from the annex. Ensure that all changes are clearly integrated and the document remains coherent and readable. Use appropriate headings (H2, H3, etc.) to organize the text for better readability.
@@ -87,7 +89,7 @@ def refine_with_llm(contract_text, annex_text, finish_reason):
         finish_reason = response.choices[0].finish_reason
         print(finish_reason)
         story += response.choices[0].message.content
-        
+        print(" prolaz ", conversation_history)
         if finish_reason == "stop":
             return story
 
@@ -98,9 +100,10 @@ def process_subfolders(base_folder):
         i+=1
         person_folder = os.path.join(base_folder, person_name)
 
-        if os.path.isdir(person_folder) and not "!" in person_name and i<5:
+        if os.path.isdir(person_folder) and not "!" in person_name:
             
-            print("Radim", person_name)
+            
+            print("Radim", person_name, i)
             ugovor_o_radu_folder = os.path.join(person_folder, 'UGOVOR O RADU', 'KONACNO')
             if os.path.exists(ugovor_o_radu_folder):
                 contract_file = None
@@ -108,26 +111,26 @@ def process_subfolders(base_folder):
 
                 # Assign the correct files to contract_file and annex_file
                 for file in os.listdir(ugovor_o_radu_folder):
-                    if file.startswith('Ugovor'):
+                    if file.startswith('Preciscen_'):
                         contract_file = os.path.join(ugovor_o_radu_folder, file)
-                    elif file.startswith('Aneks 1'):
+                    elif file.startswith('Aneks 5'):
                         annex_file = os.path.join(ugovor_o_radu_folder, file)
                 
                 if contract_file and annex_file:
                     template_file = 'template.docx'  # Fixed template file
-                    output_file = os.path.join(ugovor_o_radu_folder, f'Preciscen_{os.path.basename(contract_file)}')
-                    
+                    output_file2 = f'P5/{os.path.basename(contract_file)}'
+                    output_file = os.path.join(ugovor_o_radu_folder, f'{os.path.basename(contract_file)}')
                     # Step 1: Read DOCX files
                     contract_text = read_docx(contract_file)
                     annex_text = read_docx(annex_file)
                     
                     # Step 3: Refine the aggregated text using LLM (optional)
-                    finish_reason = None  # Define your finish_reason as needed
-                    final_text = refine_with_llm(contract_text, annex_text, finish_reason)
+                    final_text = refine_with_llm(contract_text, annex_text)
 
                     # Step 4: Save the refined text to a new DOCX file created from a template
                     save_to_docx(template_file, output_file, final_text)
-                    print(f"Processed: {ugovor_o_radu_folder}")
+                    save_to_docx(template_file, output_file2, final_text)
+                    print(f"Processed: {ugovor_o_radu_folder} ", i)
 
 # Define the base folder path
 base_folder = 'C:\\Users\\djordje\\Desktop\\RADNICI'
