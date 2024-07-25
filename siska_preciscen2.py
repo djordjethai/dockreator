@@ -1,10 +1,15 @@
 ﻿from docx import Document
 from openai import OpenAI
+import os
 
 # Initialize OpenAI client
 client = OpenAI()
 conversation_history = []
 finish_reason = ""
+
+
+# X:\05 OPŠTI\LJUDSKI RESURSI\RADNICI\Bojan Gavrilović\UGOVOR O RADU\KONACNO
+# "C:\\Users\\djordje\\Desktop\\RADNICI\\Bojan Gavrilović\\UGOVOR O RADU\\KONACNO"
 
 def read_docx(file_path):
     doc = Document(file_path)
@@ -51,7 +56,7 @@ def refine_with_llm(contract_text, annex_text, finish_reason):
     # Using OpenAI's GPT to ensure coherence and integration
     story = ""
     while True:
-        if finish_reason == "":
+        if finish_reason == "" or finish_reason == None:
             conversation_history.append({"role": "user", "content": f"""Please update the following contract by replacing the existing sentences with the corresponding new sentences from the annex. Ensure that all changes are clearly integrated and the document remains coherent and readable. Use appropriate headings (H2, H3, etc.) to organize the text for better readability.
 
                     Original Contract:
@@ -85,19 +90,45 @@ def refine_with_llm(contract_text, annex_text, finish_reason):
         
         if finish_reason == "stop":
             return story
+
+def process_subfolders(base_folder):
+    i=0 # ovo je samo za test
+    # Loop through each person’s folder in the base folder
+    for person_name in os.listdir(base_folder):
+        i+=1
+        person_folder = os.path.join(base_folder, person_name)
+
+        if os.path.isdir(person_folder) and not "!" in person_name and i<5:
             
-# Paths to your DOCX files
-contract_file = 'Ugovor.docx'
-annex_file = 'Aneks.docx'
-template_file = 'template.docx'
-output_file = 'Novi Aneks.docx'
+            print("Radim", person_name)
+            ugovor_o_radu_folder = os.path.join(person_folder, 'UGOVOR O RADU', 'KONACNO')
+            if os.path.exists(ugovor_o_radu_folder):
+                contract_file = None
+                annex_file = None
 
-# Step 1: Read DOCX files
-contract_text = read_docx(contract_file)
-annex_text = read_docx(annex_file)
+                # Assign the correct files to contract_file and annex_file
+                for file in os.listdir(ugovor_o_radu_folder):
+                    if file.startswith('Ugovor'):
+                        contract_file = os.path.join(ugovor_o_radu_folder, file)
+                    elif file.startswith('Aneks 1'):
+                        annex_file = os.path.join(ugovor_o_radu_folder, file)
+                
+                if contract_file and annex_file:
+                    template_file = 'template.docx'  # Fixed template file
+                    output_file = os.path.join(ugovor_o_radu_folder, f'Preciscen_{os.path.basename(contract_file)}')
+                    
+                    # Step 1: Read DOCX files
+                    contract_text = read_docx(contract_file)
+                    annex_text = read_docx(annex_file)
+                    
+                    # Step 3: Refine the aggregated text using LLM (optional)
+                    finish_reason = None  # Define your finish_reason as needed
+                    final_text = refine_with_llm(contract_text, annex_text, finish_reason)
 
-# Step 3: Refine the aggregated text using LLM (optional)
-final_text = refine_with_llm(contract_text, annex_text, finish_reason)
+                    # Step 4: Save the refined text to a new DOCX file created from a template
+                    save_to_docx(template_file, output_file, final_text)
+                    print(f"Processed: {ugovor_o_radu_folder}")
 
-# Step 4: Save the refined text to a new DOCX file created from a template
-save_to_docx(template_file, output_file, final_text)
+# Define the base folder path
+base_folder = 'C:\\Users\\djordje\\Desktop\\RADNICI'
+process_subfolders(base_folder)
