@@ -73,6 +73,13 @@ def read_pdf_file(filepath):
     except Exception as e:
         st.error(f"Error reading PDF file {filepath}: {e}")
         return ""
+def read_jpg_image(filepath):
+     # Open the image file
+    img = Image.open(filepath)
+    # do OCR on the image
+    text = pytesseract.image_to_string(img)
+    
+    return text
 
 def read_documents_from_folders(folders):
     documents = {}
@@ -85,7 +92,17 @@ def read_documents_from_folders(folders):
                 documents[filename] = read_docx_file(filepath)
             elif filename.endswith('.pdf'):
                 documents[filename] = read_pdf_file(filepath)
+            elif filename.endswith('.jpg') or filename.endswith('.jpeg') or filename.endswith('.png'):
+                documents[filename] = read_jpg_image(filepath)
     return documents
+
+
+def extract_values_from_xlsx(xlsx_path, member, opcija):
+    df = pd.read_excel(xlsx_path)
+    row = df[(df['member'] == member) & (df['opcija'] == opcija)]
+    if not row.empty:
+        return row.iloc[0].to_dict()
+    return {}
 
 def extract_values_from_csv(csv_path, member, opcija):
     df = pd.read_csv(csv_path)
@@ -106,7 +123,7 @@ def extract_values_from_docs(keys, documents, csv_values):
                 and return key value pairs formatted as JSON.\n."""
             }
         ],
-        temperature=0,
+        
         response_format={"type": "json_object"},
     )
     llm_response = response_text.choices[0].message.content
@@ -127,7 +144,8 @@ def create_filled_template(template_docx_path, values_dict, output_docx_path):
     for paragraph in doc.paragraphs:
         for key, value in values_dict.items():
             if f'[{key}]' in paragraph.text:
-                paragraph.text = paragraph.text.replace(f'[{key}]', value)
+                paragraph.text = paragraph.text.replace(f'[{key}]', str(value))
+                
     doc.save(output_docx_path)
 
 def zip_specific_files(files_to_zip, zip_name):
@@ -149,8 +167,8 @@ def main(template_path, folders, base_folder, fixed_folder, members, opcija, pod
         # Read documents from the updated list of folders
         documents = read_documents_from_folders(updated_folders)
         st.info(f"Čitam dokumente: {list(documents.keys())}")
-        output_docx_path = os.path.join(base_folder, member, f"{member} {opcija}.docx")
-        csv_values = extract_values_from_csv(podela, member, opcija)
+        output_docx_path = os.path.join('./zasisku/aneksi', f"{member} {opcija}.docx")
+        csv_values = extract_values_from_xlsx(podela, member, opcija)
         values_dict = extract_values_from_docs(keys, documents, csv_values)
         create_filled_template(template_path, values_dict, output_docx_path)
         files_to_zip.append(output_docx_path)
@@ -158,13 +176,13 @@ def main(template_path, folders, base_folder, fixed_folder, members, opcija, pod
     st.success("Kreirani su svi zahtevani dokumenti")
 
 if __name__ == "__main__":
-    template_path = './zasisku/mustre/tpl.docx'  # Ensure your template uses delimiters [key]
+    template_path = './zasisku/mustre/MUSTRA Aneksa 20240731.docx'  # Ensure your template uses delimiters [key]
     base_folders = ['./zasisku/zaposleni']
     base_folder = './zasisku/zaposleni'
     fixed_folder = './zasisku/dokumenti'
     available_members = [name for name in os.listdir(base_folder) if os.path.isdir(os.path.join(base_folder, name))]
     folder_path = './zasisku' 
-    podela = './zasisku/podela/podela.csv'
+    podela = './zasisku/podela/PODELA 20240731.xlsx'
     st.title("Siska - Kreiranje dokumenata za zaposlene")    
     st.subheader("Kreiranje dokumenata za zaposlene")
     st.caption("Ver 11.06.2024.")
